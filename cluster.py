@@ -2,52 +2,51 @@ import tensorflow as tf
 import numpy as np
 import csv
 
-#===som===
-"""
-feature selection
-feature extraction (PCA)
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
 
-cluster (apply som algorithm or some shit)
-train it, you need to follow the specification on docx
-"""
+#===som===
 
 def load_data():
     dataset = []
 
     with open('O192-COMP7117-AS01-00-clustering.csv') as csvfile:
         readCSV = csv.reader(csvfile, delimiter=',')
-        for row in readCSV:
-            #dataset.append(row)
+        for i, row in enumerate(readCSV):
+            if i != 0:
+                calorie_density = (float(row[4]) + float(row[5])) / 100
+                try:
+                    fat_ratio = (float(row[8]) + float(row[9])) / (float(row[7]) + float(row[11]))
+                except:
+                    # if divisor is 0
+                    fat_ratio = 1.0
 
-            calorie_density = (row[4] + row[5]) / 100
-            fat_ratio = (row[8] + row[9]) / (row[7] + row[11])
-            if fat_ratio == 0:
-                fat_ratio = 1
-            sugar = row[14]
-            protein = row[16]
-            salt = row[17]
+                if fat_ratio == 0.0:
+                    fat_ratio = 1.0
 
-            dataset.append([calorie_density, fat_ratio, sugar, protein, salt])
-    
-    #do something here
-    #maybe do pca here idk brah
+                sugar = float(row[14])
+                protein = float(row[16])
+                salt = float(row[17])
+
+                dataset.append([calorie_density, fat_ratio, sugar, protein, salt])
 
     return dataset
 
-load_data()
+def preprocessing():
+    data = load_data()
 
-def select_feature(data):
-    #create new features here
-    """
-    feature[0] = something
-    feature[1] = something
-    ...
-    """
+    np_features = np.array(data)
+
+    #===process features===
+    # normalize here
+    scaler = StandardScaler()
+    normalize_res = scaler.fit_transform(np_features)
+
+    # then do pca here
+    pca = PCA(n_components=3)
+    pca_res = pca.fit_transform(normalize_res)
     
-    #perform pca here
-    #take the three highest score of pca
-
-    return data
+    return pca_res
     
 def train(train_data):
     #clustering algo: input 3, cluster = i don't know
@@ -58,3 +57,6 @@ def train(train_data):
 def visualize(train_result):
     #use matplotlib
     return 0
+
+data = preprocessing()
+print(data[:5])

@@ -16,6 +16,7 @@ x = tf.placeholder(tf.float32, [None, number_of_input])
 y = tf.placeholder(tf.float32, [None, number_of_output])
 
 lr = 0.01
+momentum = 0.01
 epochs = 5000
 
 model_path = 'model/checkpoint.ckpt'
@@ -112,9 +113,14 @@ def build_model (inp):
 
 def train(model, train, validation, test):
     err = tf.reduce_mean(.5*(y-model)**2)
-    optimizer = tf.train.GradientDescentOptimizer(lr).minimize(err)
+    # sgd
+    # optimizer = tf.train.GradientDescentOptimizer(lr).minimize(err)
+    optimizer = tf.train.MomentumOptimizer(lr, momentum).minimize(err)
     correct_prediction= tf.equal(tf.argmax(model,1),tf.argmax(y,1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+    precision = something
+    recall = something
+
     saver = tf.train.Saver()
 
     with tf.Session() as sess:
@@ -154,6 +160,7 @@ def train(model, train, validation, test):
         test_dictionary = {x:[i[0] for i in test],
             y:[i[1] for i in test]}
 
+        # TODO: implement precision and recall here
         test_loss, test_acc = sess.run([err, accuracy], test_dictionary)
         print(f'Performance on test data. loss: {test_loss}, acc: {test_acc}')
 
