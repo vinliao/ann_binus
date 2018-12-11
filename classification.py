@@ -7,6 +7,8 @@ from sklearn.decomposition import PCA
 
 #===classification===
 
+print('something soemthinig')
+
 label_name = ['a', 'b', 'c', 'd', 'e']
 
 number_of_input = 5 # number of pca dimension
@@ -118,8 +120,8 @@ def train(model, train, validation, test):
     optimizer = tf.train.MomentumOptimizer(lr, momentum).minimize(err)
     correct_prediction= tf.equal(tf.argmax(model,1),tf.argmax(y,1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-    precision = something
-    recall = something
+    # precision = something
+    # recall = something
 
     saver = tf.train.Saver()
 
