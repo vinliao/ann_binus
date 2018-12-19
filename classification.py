@@ -120,8 +120,12 @@ def train(model, train, validation, test):
     optimizer = tf.train.MomentumOptimizer(lr, momentum).minimize(err)
     correct_prediction= tf.equal(tf.argmax(model,1),tf.argmax(y,1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-    # precision = something
-    # recall = something
+    TP = tf.count_nonzero(y * model)
+    TN = tf.count_nonzero((y - 1) * (model - 1))
+    FP = tf.count_nonzero(y * (model - 1))
+    FN = tf.count_nonzero((y - 1) * model)
+    precision = TP / (TP + FP)
+    recall = TP / (TP + FN)
 
     saver = tf.train.Saver()
 
@@ -136,15 +140,19 @@ def train(model, train, validation, test):
                 y:[i[1] for i in validation]}
                 
             # code to train
-            _, train_loss, train_acc = sess.run([optimizer, err, accuracy], feed_dict=train_dictionary)
+            # you can use the print the variable precision and recall 
+            _, train_loss, train_acc, train_precision, train_recall = sess.run([optimizer, err, accuracy, precision, recall], 
+                feed_dict=train_dictionary)
             if i%100 == 0:
                 print(f'epoch: {i}, train loss: {train_loss}, train acc:{train_acc}')
+                print(f'PRECISION BRO', train_precision)
+                print(f'RECALL BRO', train_recall)
 
             # every 500 epoch do something
             if i%500 == 0 and i!=0:
                 if i == 500:
                     # code to evaluate
-                    val_loss, val_acc = sess.run([err, accuracy], validation_dictionary)
+                    val_loss, val_acc, val_precision, val_recall = sess.run([err, accuracy, precision, recall], validation_dictionary)
                     best_val_loss = val_loss
                     print(f'currently epoch {i}, val loss is {val_loss}, val acc {val_acc}, saving model...')
                     saver.save(sess, model_path)
@@ -163,7 +171,7 @@ def train(model, train, validation, test):
             y:[i[1] for i in test]}
 
         # TODO: implement precision and recall here
-        test_loss, test_acc = sess.run([err, accuracy], test_dictionary)
+        test_loss, test_acc, test_precision, test_recall = sess.run([err, accuracy, precision, recall], test_dictionary)
         print(f'Performance on test data. loss: {test_loss}, acc: {test_acc}')
 
 data = preprocessing()
