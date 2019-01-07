@@ -17,10 +17,6 @@ number_of_output = 5 # number of unique output (a, b, c, d, e)
 x = tf.placeholder(tf.float32, [None, number_of_input])
 y = tf.placeholder(tf.float32, [None, number_of_output])
 
-lr = 0.01
-momentum = 0.01
-epochs = 5000
-
 model_path = 'model/checkpoint.ckpt'
 
 def load_data():
@@ -40,7 +36,6 @@ def load_data():
             features.append(row[8])
             features.append(row[9])
             features.append(row[10])
-            features.append(row[12])
             features.append(row[12])
             features.append(row[14])
             features.append(row[15])
@@ -103,17 +98,17 @@ def fully_connected(inp, in_degree, out_degree):
     a = tf.nn.sigmoid(z)
     return a
 
-def build_model (inp):
+def build_model (inp, mid_neuron):
     number_of_hidden = [5, 10, 3] # TODO: edit this line
 
-    layer_1 = fully_connected(inp, number_of_input, number_of_hidden[0])
-    layer_2 = fully_connected(layer_1, number_of_hidden[0], number_of_output)
+    layer_1 = fully_connected(inp, number_of_input, mid_neuron)
+    layer_2 = fully_connected(layer_1, mid_neuron, number_of_output)
 
     # you also can add another layer if you wish
 
     return layer_2   
 
-def train(model, train, validation, test):
+def train(model, train, validation, test, lr, momentum, epochs):
     err = tf.reduce_mean(.5*(y-model)**2)
     # sgd
     # optimizer = tf.train.GradientDescentOptimizer(lr).minimize(err)
@@ -145,8 +140,8 @@ def train(model, train, validation, test):
                 feed_dict=train_dictionary)
             if i%100 == 0:
                 print(f'epoch: {i}, train loss: {train_loss}, train acc:{train_acc}')
-                print(f'PRECISION BRO', train_precision)
-                print(f'RECALL BRO', train_recall)
+                # print(f'PRECISION BRO', train_precision)
+                # print(f'RECALL BRO', train_recall)
 
             # every 500 epoch do something
             if i%500 == 0 and i!=0:
@@ -173,6 +168,8 @@ def train(model, train, validation, test):
         # TODO: implement precision and recall here
         test_loss, test_acc, test_precision, test_recall = sess.run([err, accuracy, precision, recall], test_dictionary)
         print(f'Performance on test data. loss: {test_loss}, acc: {test_acc}')
+        print(f'test PRECISION BRO', test_precision)
+        print(f'test RECALL BRO', test_recall)
 
 data = preprocessing()
 total_data = data.shape[0]
@@ -185,4 +182,29 @@ train_data = data[:hm_train]
 val_data = data[hm_train:hm_train+hm_val]
 test_data = data[-hm_test:]
 
-train(build_model(x), train_data, val_data, test_data)
+lr = 0.01
+momentum = 0.01
+epochs = 500
+hidden_neuron = 5
+
+lr_list = [0.01, 0.05, 0.1]
+momentum_list = [0.01, 0.5, 0.01]
+epochs_list = [500, 1000, 5000]
+hidden_neuron_list = [3, 5, 10]
+
+for one_lr in lr_list:
+    print(f'CURRENTLY DOING {one_lr} learning rate')
+    train(build_model(x, hidden_neuron), train_data, val_data, test_data, one_lr, momentum, epochs)
+
+for one_momentum in momentum_list:
+    print(f'CURRENTLY DOING {one_momentum} momentum')
+    train(build_model(x, hidden_neuron), train_data, val_data, test_data, lr, one_momentum, epochs)
+
+for one_epoch in epochs_list:
+    print(f'CURRENTLY DOING {one_epoch} epoch')
+    train(build_model(x, hidden_neuron), train_data, val_data, test_data, lr, momentum, one_epoch)
+
+for one_layer in hidden_neuron_list:
+    print(f'CURRENTLY DOING {one_layer} number of neuron')
+    train(build_model(x, hidden_neuron), train_data, val_data, test_data, lr, momentum, one_epoch)
+    train(build_model(x, one_layer), train_data, val_data, test_data, lr, momentum, epochs)
